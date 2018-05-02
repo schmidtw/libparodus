@@ -995,11 +995,11 @@ static void *wrp_receiver_thread (void *arg)
 			continue;
 		}
                 msg_service++;
-                // size_t len = strlen(msg_service);
-                char *tmp = strchr (msg_service, '/');
-                if (NULL != tmp) {
-                    len = (uintptr_t)tmp - (uintptr_t)msg_service;
-                }
+                //size_t len = strlen(msg_service);
+                //char *tmp = strchr (msg_service, '/');
+                //if (NULL != tmp) {
+                //    len = (uintptr_t)tmp - (uintptr_t)msg_service;
+                //}
 		// For FlyingCircus Demo Ignore service_name
 		//if (strncmp (msg_service, inst->cfg.service_name, len) != 0) {
 		//	wrp_free_struct (wrp_msg);
