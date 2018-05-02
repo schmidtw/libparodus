@@ -995,7 +995,7 @@ static void *wrp_receiver_thread (void *arg)
 			continue;
 		}
                 msg_service++;
-                size_t len = strlen(msg_service);
+                // size_t len = strlen(msg_service);
                 char *tmp = strchr (msg_service, '/');
                 if (NULL != tmp) {
                     len = (uintptr_t)tmp - (uintptr_t)msg_service;
