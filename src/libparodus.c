@@ -1000,10 +1000,11 @@ static void *wrp_receiver_thread (void *arg)
                 if (NULL != tmp) {
                     len = (uintptr_t)tmp - (uintptr_t)msg_service;
                 }
-		if (strncmp (msg_service, inst->cfg.service_name, len) != 0) {
-			wrp_free_struct (wrp_msg);
-			continue;
-		}
+		// For FlyingCircus Demo Ignore service_name
+		//if (strncmp (msg_service, inst->cfg.service_name, len) != 0) {
+		//	wrp_free_struct (wrp_msg);
+		//	continue;
+		//}
 		libpd_log (LEVEL_DEBUG, ("LIBPARODUS: received msg directed to service %s\n",
 			inst->cfg.service_name));
 		libpd_qsend (inst->wrp_queue, (void *) wrp_msg, WRP_QUEUE_SEND_TIMEOUT_MS, &exterr);
