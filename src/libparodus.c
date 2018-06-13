@@ -189,11 +189,14 @@ static __instance_t *make_new_instance (libpd_cfg_t *cfg)
 	size_t qname_len;
 	char *wrp_queue_name;
 	__instance_t *inst = (__instance_t*) malloc (sizeof (__instance_t));
-	if (NULL == inst)
+	if (NULL == inst) {
+		printf("make_new_instance() failed on inst malloc\n");
 		return NULL;
+	}
 	qname_len = strlen(wrp_qname_hdr) + strlen(cfg->service_name) + 1;
 	wrp_queue_name = (char*) malloc (qname_len+1);
 	if (NULL == wrp_queue_name) {
+		printf("make_new_instance() failed on wrp_queue_name malloc\n");
 		free (inst);
 		return NULL;
 	}
@@ -493,6 +496,7 @@ int libparodus_init (libpd_instance_t *instance, libpd_cfg_t *libpd_cfg)
 		libpd_log (LEVEL_INFO, ("LIBPARODUS: connecting receiver to %s\n",  inst->client_url));
 		err = connect_receiver (inst->client_url, inst->cfg.keepalive_timeout_secs, &oserr);
 		if (err < 0) {
+			printf("libparodus connect_receiver() error %d\n", err);
 			SETERR(oserr, LIBPD_ERR_INIT_RCV + err); 
 			return CONNECT_ERR (oserr);
 		}
