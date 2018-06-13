@@ -189,11 +189,14 @@ static __instance_t *make_new_instance (libpd_cfg_t *cfg)
 	size_t qname_len;
 	char *wrp_queue_name;
 	__instance_t *inst = (__instance_t*) malloc (sizeof (__instance_t));
-	if (NULL == inst)
+	if (NULL == inst) {
+		printf("make_new_instance() failed on inst malloc\n");
 		return NULL;
+	}
 	qname_len = strlen(wrp_qname_hdr) + strlen(cfg->service_name) + 1;
 	wrp_queue_name = (char*) malloc (qname_len+1);
 	if (NULL == wrp_queue_name) {
+		printf("make_new_instance() failed on wrp_queue_name malloc\n");
 		free (inst);
 		return NULL;
 	}
@@ -478,7 +481,7 @@ int libparodus_init (libpd_instance_t *instance, libpd_cfg_t *libpd_cfg)
 	errno = oserr
 #define CONNECT_ERR(oserr) \
 	(oserr == EINVAL) ? LIBPD_ERROR_INIT_CFG : LIBPD_ERROR_INIT_CONNECT
-
+        printf("Entering libparodus_init! ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ\n");
 	if (NULL == inst) {
 		libpd_log (LEVEL_ERROR, ("LIBPARODUS: unable to allocate new instance\n"));
 		return LIBPD_ERROR_INIT_INST;
@@ -493,6 +496,7 @@ int libparodus_init (libpd_instance_t *instance, libpd_cfg_t *libpd_cfg)
 		libpd_log (LEVEL_INFO, ("LIBPARODUS: connecting receiver to %s\n",  inst->client_url));
 		err = connect_receiver (inst->client_url, inst->cfg.keepalive_timeout_secs, &oserr);
 		if (err < 0) {
+			printf("libparodus connect_receiver() error %d\n", err);
 			SETERR(oserr, LIBPD_ERR_INIT_RCV + err); 
 			return CONNECT_ERR (oserr);
 		}
@@ -502,6 +506,7 @@ int libparodus_init (libpd_instance_t *instance, libpd_cfg_t *libpd_cfg)
 		//libpd_log (LEVEL_INFO, ("LIBPARODUS: connecting sender to %s\n", inst->parodus_url));
 		err = connect_sender (inst->parodus_url, &oserr);
 		if (err < 0) {
+			printf("libparodus connect_sender(%s) error %d\n", inst->parodus_url, err);
 			abort_init (inst, ABORT_RCV_SOCK);
 			SETERR (oserr, LIBPD_ERR_INIT_SEND + err); 
 			return CONNECT_ERR (oserr);
@@ -514,6 +519,7 @@ int libparodus_init (libpd_instance_t *instance, libpd_cfg_t *libpd_cfg)
 		// We use the stop_rcv_sock to send a stop msg to our own receive socket.
 		err = connect_sender (inst->client_url, &oserr);
 		if (err < 0) {
+			printf("libparodus connect_sender(%s) error %d\n", inst->client_url, err);
 			abort_init (inst, ABORT_RCV_SOCK | ABORT_SEND_SOCK);
 			SETERR (oserr, LIBPD_ERR_INIT_TERMSOCK + err); 
 			return CONNECT_ERR (oserr);
@@ -522,6 +528,7 @@ int libparodus_init (libpd_instance_t *instance, libpd_cfg_t *libpd_cfg)
 		libpd_log (LEVEL_INFO, ("LIBPARODUS: Opened sockets\n"));
 		err = libpd_qcreate (&inst->wrp_queue, inst->wrp_queue_name, WRP_QUEUE_SIZE, &oserr);
 		if (err != 0) {
+			printf("libparodus libpd_qcreate() error %d\n", err);			
 			abort_init (inst, ABORT_RCV_SOCK | ABORT_SEND_SOCK | ABORT_STOP_RCV_SOCK);
 			SETERR (oserr, LIBPD_ERR_INIT_QUEUE + err); 
 			return LIBPD_ERROR_INIT_QUEUE;
@@ -530,6 +537,7 @@ int libparodus_init (libpd_instance_t *instance, libpd_cfg_t *libpd_cfg)
 		err = create_thread (&inst->wrp_receiver_tid, wrp_receiver_thread,
 				inst);
 		if (err != 0) {
+			printf("libparodus create_thread() error %d\n", err);			
 			abort_init (inst, ABORT_RCV_SOCK | ABORT_QUEUE | ABORT_SEND_SOCK | ABORT_STOP_RCV_SOCK); 
 			SETERR (err, LIBPD_ERR_INIT_RCV_THREAD_PCR);
 			return LIBPD_ERROR_INIT_RCV_THREAD;
@@ -995,15 +1003,16 @@ static void *wrp_receiver_thread (void *arg)
 			continue;
 		}
                 msg_service++;
-                size_t len = strlen(msg_service);
-                char *tmp = strchr (msg_service, '/');
-                if (NULL != tmp) {
-                    len = (uintptr_t)tmp - (uintptr_t)msg_service;
-                }
-		if (strncmp (msg_service, inst->cfg.service_name, len) != 0) {
-			wrp_free_struct (wrp_msg);
-			continue;
-		}
+                //size_t len = strlen(msg_service);
+                //char *tmp = strchr (msg_service, '/');
+                //if (NULL != tmp) {
+                //    len = (uintptr_t)tmp - (uintptr_t)msg_service;
+                //}
+		// For FlyingCircus Demo Ignore service_name
+		//if (strncmp (msg_service, inst->cfg.service_name, len) != 0) {
+		//	wrp_free_struct (wrp_msg);
+		//	continue;
+		//}
 		libpd_log (LEVEL_DEBUG, ("LIBPARODUS: received msg directed to service %s\n",
 			inst->cfg.service_name));
 		libpd_qsend (inst->wrp_queue, (void *) wrp_msg, WRP_QUEUE_SEND_TIMEOUT_MS, &exterr);
