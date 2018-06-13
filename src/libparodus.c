@@ -481,7 +481,7 @@ int libparodus_init (libpd_instance_t *instance, libpd_cfg_t *libpd_cfg)
 	errno = oserr
 #define CONNECT_ERR(oserr) \
 	(oserr == EINVAL) ? LIBPD_ERROR_INIT_CFG : LIBPD_ERROR_INIT_CONNECT
-
+        printf("Entering libparodus_init! ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ\n");
 	if (NULL == inst) {
 		libpd_log (LEVEL_ERROR, ("LIBPARODUS: unable to allocate new instance\n"));
 		return LIBPD_ERROR_INIT_INST;
@@ -506,6 +506,7 @@ int libparodus_init (libpd_instance_t *instance, libpd_cfg_t *libpd_cfg)
 		//libpd_log (LEVEL_INFO, ("LIBPARODUS: connecting sender to %s\n", inst->parodus_url));
 		err = connect_sender (inst->parodus_url, &oserr);
 		if (err < 0) {
+			printf("libparodus connect_sender(%s) error %d\n", inst->parodus_url, err);
 			abort_init (inst, ABORT_RCV_SOCK);
 			SETERR (oserr, LIBPD_ERR_INIT_SEND + err); 
 			return CONNECT_ERR (oserr);
@@ -518,6 +519,7 @@ int libparodus_init (libpd_instance_t *instance, libpd_cfg_t *libpd_cfg)
 		// We use the stop_rcv_sock to send a stop msg to our own receive socket.
 		err = connect_sender (inst->client_url, &oserr);
 		if (err < 0) {
+			printf("libparodus connect_sender(%s) error %d\n", inst->client_url, err);
 			abort_init (inst, ABORT_RCV_SOCK | ABORT_SEND_SOCK);
 			SETERR (oserr, LIBPD_ERR_INIT_TERMSOCK + err); 
 			return CONNECT_ERR (oserr);
@@ -526,6 +528,7 @@ int libparodus_init (libpd_instance_t *instance, libpd_cfg_t *libpd_cfg)
 		libpd_log (LEVEL_INFO, ("LIBPARODUS: Opened sockets\n"));
 		err = libpd_qcreate (&inst->wrp_queue, inst->wrp_queue_name, WRP_QUEUE_SIZE, &oserr);
 		if (err != 0) {
+			printf("libparodus libpd_qcreate() error %d\n", err);			
 			abort_init (inst, ABORT_RCV_SOCK | ABORT_SEND_SOCK | ABORT_STOP_RCV_SOCK);
 			SETERR (oserr, LIBPD_ERR_INIT_QUEUE + err); 
 			return LIBPD_ERROR_INIT_QUEUE;
@@ -534,6 +537,7 @@ int libparodus_init (libpd_instance_t *instance, libpd_cfg_t *libpd_cfg)
 		err = create_thread (&inst->wrp_receiver_tid, wrp_receiver_thread,
 				inst);
 		if (err != 0) {
+			printf("libparodus create_thread() error %d\n", err);			
 			abort_init (inst, ABORT_RCV_SOCK | ABORT_QUEUE | ABORT_SEND_SOCK | ABORT_STOP_RCV_SOCK); 
 			SETERR (err, LIBPD_ERR_INIT_RCV_THREAD_PCR);
 			return LIBPD_ERROR_INIT_RCV_THREAD;
